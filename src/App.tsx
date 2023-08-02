@@ -6,8 +6,10 @@ function App() {
   return (
     <>
     {/* Sidebar at left */}
-    <Sidebar />
-    <Outlet />
+    <section className='grid grid-cols-[15vw_,1fr]'>
+      <Sidebar />
+      <Outlet />
+    </section>
     </>
   )
 }
