@@ -2,6 +2,7 @@ import { Button, Dialog, DialogActions, DialogContent, DialogContentText, Dialog
 import { useEffect, useRef, useState } from "react"
 import { useTheme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
+import axios from "axios"
 
 function ListProduct() {
     const dummy = [
@@ -69,10 +70,15 @@ function ListProduct() {
     const categoryRef = useRef<HTMLSelectElement>(null)
     const shortRef = useRef<HTMLTextAreaElement>(null)
     const [ selected, setSelected] = useState<any>(null)
-    // open/close dialog confirm delete product
+    // open/close dialog updated product
     const [ open, setOpen ] = useState(false)
+    // open/close dialog confirm delete product
+    const [ openConfirm, setOpenConfirm ] = useState(false)
     const handleClose = () => {
         setOpen(false);
+    }
+    const handleCloseConfirm = () => {
+        setOpenConfirm(false)
     }
     useEffect(() => {
         if (selected !== null) {
@@ -82,8 +88,35 @@ function ListProduct() {
             }
         }
     }, [selected])
+
+    useEffect(() => {
+        // Get Access token from session
+        const access_token = Boolean(sessionStorage.getItem('access_token')) ?
+            sessionStorage.getItem('access_token') : null
+        // Fetching list products
+        if (access_token) {
+            ;(async () => {
+                try {
+                    const res = await axios.get("http://localhost:5000/admin/api/v1/list-product", 
+                    {
+                        headers: { 
+                            'Authorization': 'Bearer ' + access_token, 
+                            "Content-Type" : "application/json"
+                        },
+                        withCredentials: true
+                    })
+                    
+                    console.log(res.data)
+                } catch (error) {
+                    console.log(error)
+                    
+                }
+            })()
+        }
+    }, [])
     return(
         <>
+        {/* Dialog form for update products */}
         <Dialog
             open={open}
             onClose={handleClose}
@@ -155,6 +188,28 @@ function ListProduct() {
             </Button>
             </DialogActions>
         </Dialog>
+        {/* Dialog confirm remove product (ngừng kinh doanh) */}
+            <Dialog
+            open={openConfirm}
+            onClose={handleCloseConfirm}
+            aria-labelledby="confirm-dialog-title"
+            aria-describedby="confirm-dialog-description"
+        >
+            <DialogTitle id="confirm-dialog-title">
+            {"Xác nhận ngừng kinh doanh sản phẩm!"}
+            </DialogTitle>
+            <DialogContent>
+            <DialogContentText id="confirm-dialog-description">
+                Bạn có đồng ý ngừng kinh doanh {(selected) ? selected.name : null} này ?
+            </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+            <Button onClick={handleCloseConfirm} color="error">Cancel</Button>
+            <Button onClick={handleCloseConfirm} color="primary" variant="contained" autoFocus>
+                Agree
+            </Button>
+            </DialogActions>
+        </Dialog>
         <section className="ml-6 pt-6">
             <h2>Danh sách sản phẩm</h2>
             {/* Search box */}
@@ -219,10 +274,12 @@ function ListProduct() {
                                         >Update</button>
                                         <button className="bg-red-400 p-1 text-white"
                                             onClick={() => {
-                                                console.log("Update id: ", item._id)
+                                                // console.log("Update id: ", item._id)
                                                 // setOpen(true)
+                                                setSelected(item)
+                                                setOpenConfirm(true)
                                             }}
-                                        >Delete</button>
+                                        >Remove</button>
                                     </td>
                                 </tr>
                             )
