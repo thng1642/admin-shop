@@ -1,8 +1,10 @@
-import { Link, useLocation } from "react-router-dom"
+import axios from "axios"
+import { Link, useLocation, useNavigate } from "react-router-dom"
 
 function Sidebar() {
 
     const location = useLocation()
+    const nav = useNavigate()
     const linkCSS = "mb-1 hover:bg-slate-300 hover:cursor-pointer pl-2 block rounded-lg px-4 py-2 text-sm font-medium"
     const activeLink = function(path: String) {
         if (location.pathname === path) {
@@ -32,7 +34,15 @@ function Sidebar() {
                     <li className={linkCSS}>Tư vấn viên</li>
                 </ul>
             </div>
-            <div>
+            <div onClick={() => {
+                sessionStorage.removeItem("access_token")
+                axios.post('http://localhost:5000/admin/api/v1/logout', null, {
+                    withCredentials: true,
+                })
+                nav('/login')
+            }}
+                className="hover:cursor-pointer"
+            >
                 <span>Logout</span>
             </div>
         </div>

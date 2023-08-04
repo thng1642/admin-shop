@@ -1,7 +1,9 @@
-import { forwardRef, useRef, useState } from "react"
+import { forwardRef, useEffect, useRef, useState } from "react"
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
-import { Snackbar } from "@mui/material";
+import { CircularProgress, Snackbar } from "@mui/material";
+import { green } from '@mui/material/colors'
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const Alert = forwardRef<HTMLDivElement, AlertProps>(function Alert(
     props,
@@ -11,17 +13,21 @@ const Alert = forwardRef<HTMLDivElement, AlertProps>(function Alert(
 });
 function AddProduct() {
 
+    const nav = useNavigate()
     const imgsRef = useRef<HTMLInputElement>(null)
+    const priceRef = useRef<HTMLInputElement>(null)
     const longRef = useRef<HTMLTextAreaElement>(null)
     const nameRef = useRef<HTMLInputElement>(null)
     const categoryRef = useRef<HTMLSelectElement>(null)
     const shortRef = useRef<HTMLTextAreaElement>(null)
+    const [ categories, setCategories ] = useState<any[]>([])
     // open/close alter error file input
     const [ validFiles, setValidFiles ] = useState(false)
     // open/close valid form
     const [ validForm, setValidForm ] = useState<Boolean | null>(null)
     // Message valid form
     const [ messValid, setMessValid ] = useState<String>('')
+    const [ creating, setCreating ] = useState(false)
     const [ quantity, setQuantity ] = useState<number>(0)
     const handleClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
         if (reason === 'clickaway') {
@@ -44,6 +50,10 @@ function AddProduct() {
         }
         if (categoryRef.current !== null && !Boolean(categoryRef.current.value)) {
             setMessValid("Danh mục sản phẩm để trống!")
+            return false
+        }
+        if (priceRef.current !== null && !Boolean(priceRef.current.value)) {
+            setMessValid("Không để trống giá sản phẩm!")
             return false
         }
         if (shortRef.current !== null && !Boolean(shortRef.current.value)) {
@@ -86,21 +96,47 @@ function AddProduct() {
         if (longRef.current !== null && longRef.current.value !== null) {
             data.append("long_desc", longRef.current.value)
         }
-        console.log("Data request: ", data)
+        if (priceRef.current !== null && priceRef.current.value !== null) {
+            data.append("price", priceRef.current.value)
+        }
+        setCreating(true)
         try {
+            const access_token = sessionStorage.getItem("access_token")
             const res = await axios.post("http://localhost:5000/admin/api/v1/add-product",
                 data,
                 {
+                    withCredentials: true,
                     headers: {
                         'Content-Type': 'multipart/form-data',
+                        "Authorization": 'Bearer ' + access_token
                     }
                 }
             )
-            console.log("Response: ", res.data)
+            // console.log("Response: ", res.data)
+            setCreating(false)
+            nav('/list-product')
         } catch(error) {
             console.log(error)
+            setCreating(false)
         }
     }
+    useEffect(() => {
+        const access_token = sessionStorage.getItem("access_token")
+        if ( !access_token ) {
+            nav('/login')
+            return
+        }
+        ;(async () => {
+            const res = await axios.get("http://localhost:5000/admin/api/v1/list-category", {
+                withCredentials: true,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + access_token,
+                }
+            })
+            setCategories(res.data)
+        })()
+    }, [])
     return (
         <section>
             <Snackbar open={validFiles} autoHideDuration={4000} onClose={handleClose}>
@@ -135,8 +171,11 @@ function AddProduct() {
                             <option value={''}>
                                 <>Selected Category</>
                             </option>
-                            <option value='12939120'>Iphone</option>
-                            <option value='999923'>Ipad</option>
+                            {
+                                categories.map((value, index) => (
+                                    <option key={index} value={value._id}>{value.name}</option>
+                                ))
+                            }
                         </select>
                     </div>
                     {/* Quantity */}
@@ -172,6 +211,14 @@ function AddProduct() {
                         >
                             +
                         </button>
+                    </div>
+                    {/* Price */}
+                    <div>
+                        <label htmlFor="">
+                            Price
+                            <input type="number" id="product-price" name="price" 
+                            className="border-2 text-sm ml-2 p-1 border-gray-200 [-moz-appearance:_textfield] sm:text-sm [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none" ref={priceRef}/>
+                        </label>
                     </div>
                 </div>
                 {/* Short description for product */}
@@ -227,6 +274,14 @@ function AddProduct() {
                     </div>
                 </div>
                 <div className="flex flex-row justify-end">
+                {
+                    (creating) ? <CircularProgress
+                        size={40}
+                        sx={{
+                            color: green[500],
+                        }}
+                    /> : null
+                }
                     <button className="inline-block rounded border border-indigo-600 bg-indigo-600 px-12 py-3 text-sm font-medium text-white hover:bg-transparent hover:text-indigo-600 focus:outline-none focus:ring active:text-indigo-500" onClick={handleSubmitForm}>Tạo mới</button>
                 </div>
             </div>

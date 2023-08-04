@@ -1,29 +1,51 @@
+import axios from "axios"
+import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
 
 /**
  * Show main contain for admin
  */
 function Dashboard() {
-    const dummy = [
-        {
-            "_id": "64c3a9df16b361e63538f058",
-            "userId": "64be952df293b9391ba23427",
-            "name": "Nguyen Thuan",
-            "phoneNumber": "0971852664",
-            "address": "ha noi, viet nam",
-            "totalPrice": "21998000",
-            "status": "Pending"
-        },
-        {
-            "_id": "64c605acf9cb366437eb6f14",
-            "userId": "64be952df293b9391ba23427",
-            "name": "Nguyen Thuan",
-            "phoneNumber": "0971852664",
-            "address": "Dong Hoa ,Di An, Binh Duong, Viet Nam",
-            "totalPrice": "91777000",
-            "status": "Pending"
-        }
-    ]
+    const nav = useNavigate()
+    const [ countClient, setCountClient ] = useState(0)
+    const [ money, setMoney ] = useState('')
+    const [ newOrder, setNewOrder ] = useState('')
+    const [ orders, setOrders ] = useState<any[]>([])
     // const dataDummy = Object.values(dummy).shift()
+    useEffect(() => {
+        const access_token = sessionStorage.getItem('access_token')
+        if ( !access_token ) {
+            nav('/login')
+            return
+        }
+        ;(async () => {
+            try {
+                const overview = await axios.get("http://localhost:5000/admin/api/v1/overview", {
+                    withCredentials: true,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + access_token,
+                    }
+                })
+                // console.log(overview.data)
+                setCountClient(overview.data.client)
+                setMoney(overview.data.total)
+                setNewOrder(overview.data.newOrder)
+                const res = await axios.get("http://localhost:5000/admin/api/v1/list-order/", {
+                    withCredentials: true,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + access_token,
+                    }
+                })
+                // console.log(res.data)
+                setOrders(res.data)
+            } catch (error) {
+                console.log(error);
+                
+            }
+        })()
+    }, [])
     return (
         <section className="p-4 shadow-title">
             <h2 className="text-slate-400 mb-4">Dashboard</h2>
@@ -31,7 +53,7 @@ function Dashboard() {
             <div className="grid grid-cols-3 gap-4 mb-6">
                 <div className="shadow-title flex flex-row items-center p-4 justify-between">
                     <div>
-                        <p className="font-medium text-xl">2</p>
+                        <p className="font-medium text-xl">{countClient}</p>
                         <p className="text-slate-400">Clients</p>
                     </div>
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
@@ -40,7 +62,7 @@ function Dashboard() {
                 </div>
                 <div className="shadow-title flex flex-row items-center p-4 justify-between">
                     <div>
-                        <p className="font-medium text-xl">400.000.000 VND</p>
+                        <p className="font-medium text-xl">{money} VND</p>
                         <p className="text-slate-400">Earnings of month</p>
                     </div>
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
@@ -49,7 +71,7 @@ function Dashboard() {
                 </div>
                 <div className="shadow-title flex flex-row items-center p-4 justify-between">
                     <div>
-                        <p className="font-medium text-xl">2</p>
+                        <p className="font-medium text-xl">{newOrder}</p>
                         <p className="text-slate-400">New orders</p>
                     </div>
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
@@ -72,12 +94,12 @@ function Dashboard() {
                             <th className="border-2 border-gray-700">Detail</th>
                         </tr>
                         {
-                        dummy.map((item, key) => {
+                        orders.map((item:any, key) => {
                             const data = Object.values(item)
                             return(
                                 <tr className="even:bg-gray-200" key={key}>
                                     {
-                                        data?.map((value, index) => {
+                                        data?.map((value:any, index) => {
                                             if(index === 0) return null
                                             else {
                                                 return (

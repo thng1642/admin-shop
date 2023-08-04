@@ -1,94 +1,258 @@
-import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@mui/material"
-import { useEffect, useRef, useState } from "react"
-import { useTheme } from '@mui/material/styles'
-import useMediaQuery from '@mui/material/useMediaQuery'
-import axios from "axios"
+import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Snackbar } from "@mui/material";
+import MuiAlert, { AlertProps } from '@mui/material/Alert';
+import { useTheme } from '@mui/material/styles';
+import axios from "axios";
+import { Dispatch, SetStateAction, forwardRef, useEffect, useRef, useState } from "react";
 
-function ListProduct() {
-    const dummy = [
-        {
-            "_id": "62ccd4665eefc71539bb6b4c",
-            "name": "Apple iPhone 13 Pro Max - Alpine Green",
-            "img": "https://firebasestorage.googleapis.com/v0/b/funix-way.appspot.com/o/xSeries%2FCCDN%2FReactJS%2FAssignment_Images%2FASM03_Resources%2Fiphone_13_4.jpeg?alt=media&token=dc72dde3-cfa4-4710-9493-ac2aa0ecf249",
-            "price": "29390000",
-            "category": "Iphone"
-        },
-        {
-            "_id": "62ccd5755eefc71539bb6b4e",
-            "name": "Apple iPhone 11 64GB",
-            "img": "https://firebasestorage.googleapis.com/v0/b/funix-way.appspot.com/o/xSeries%2FCCDN%2FReactJS%2FAssignment_Images%2FASM03_Resources%2Fiphone_11_2.jpeg?alt=media&token=2e8b6c8e-56fa-4cfd-86c4-9be2ee6205e0",
-            "price": "10999000",
-            "category": "Iphone"
-        },
-        {
-            "_id": "62ccd6d75eefc71539bb6b50",
-            "name": "Apple iPhone 12 64GB",
-            "img": "https://firebasestorage.googleapis.com/v0/b/funix-way.appspot.com/o/xSeries%2FCCDN%2FReactJS%2FAssignment_Images%2FASM03_Resources%2Fiphone_12_3.jpeg?alt=media&token=56832bd5-c510-4760-923c-fae236c6712c",
-            "price": "15790000",
-            "category": "Iphone"
-        },
-        {
-            "_id": "62ccd8b55eefc71539bb6b52",
-            "name": "Apple iPad Gen 9th Wi-Fi 64GB",
-            "img": "https://firebasestorage.googleapis.com/v0/b/funix-way.appspot.com/o/xSeries%2FCCDN%2FReactJS%2FAssignment_Images%2FASM03_Resources%2Fipad_gen9_1.jpeg?alt=media&token=507fbf42-b8db-4007-b294-397b95cce7ba",
-            "price": "8990000",
-            "category": "Ipad"
-        },
-        {
-            "_id": "62ccd9eb5eefc71539bb6b54",
-            "name": "Apple iPad Air 4 10.9 inch Wi-Fi + Cellular 64GB",
-            "img": "https://firebasestorage.googleapis.com/v0/b/funix-way.appspot.com/o/xSeries%2FCCDN%2FReactJS%2FAssignment_Images%2FASM03_Resources%2Fipad_air_1.jpeg?alt=media&token=79be0859-23b8-4915-8f92-4bf087ab3186",
-            "price": "15990000",
-            "category": "Ipad"
-        },
-        {
-            "_id": "62ccdb045eefc71539bb6b56",
-            "name": "Apple Watch Series 6 40mm GPS Sport Band",
-            "img": "https://firebasestorage.googleapis.com/v0/b/funix-way.appspot.com/o/xSeries%2FCCDN%2FReactJS%2FAssignment_Images%2FASM03_Resources%2Fwatch_1_4.jpeg?alt=media&token=c5642ff3-ec27-4af1-bca2-87a5606f9fee",
-            "price": "9090000",
-            "category": "Watch"
-        },
-        {
-            "_id": "62ccdbb05eefc71539bb6b58",
-            "name": "Apple Watch Series 7 41mm GPS Sport Band",
-            "img": "https://firebasestorage.googleapis.com/v0/b/funix-way.appspot.com/o/xSeries%2FCCDN%2FReactJS%2FAssignment_Images%2FASM03_Resources%2Fwatch_2_1.jpeg?alt=media&token=6585e4e6-801a-4b15-9dee-692523cc25f0",
-            "price": "10590000",
-            "category": "Watch"
-        },
-        {
-            "_id": "62ccdcc95eefc71539bb6b59",
-            "name": "Apple AirPods 3rd gen",
-            "img": "https://firebasestorage.googleapis.com/v0/b/funix-way.appspot.com/o/xSeries%2FCCDN%2FReactJS%2FAssignment_Images%2FASM03_Resources%2Fairpod_1_1.jpeg?alt=media&token=33b2ebdd-086c-4b8e-9241-0b566ca66754",
-            "price": "4390000",
-            "category": "AirPod"
-        }
-    ]
-    const theme = useTheme()
-    const fullScreen = useMediaQuery(theme.breakpoints.down('md'))
+type Props = {
+    id: string,
+    categories: any[],
+    open: boolean,
+    setOpen: Dispatch<SetStateAction<boolean>>,
+    products: any[],
+    setProducts: Dispatch<SetStateAction<any[]>>
+}
+const Alert = forwardRef<HTMLDivElement, AlertProps>(function Alert(
+    props,
+    ref,
+) {
+    return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
+export function UpdateForm(props: Props) {
+
+    const { id, categories ,open, setOpen, products, setProducts } = props
+    const [ messValid, setMessValid ] = useState<String>('')
     const longRef = useRef<HTMLTextAreaElement>(null)
     const nameRef = useRef<HTMLInputElement>(null)
+    const priceRef = useRef<HTMLInputElement>(null)
     const categoryRef = useRef<HTMLSelectElement>(null)
     const shortRef = useRef<HTMLTextAreaElement>(null)
+    const [ data, setData ] = useState<any>(null)
+    const [ success, setSuccess ] = useState(false)
+
+    const handleClose = () => {
+        setOpen(false);
+    }
+    const handleUpdated = async () => {
+
+        if (nameRef.current !== null && !Boolean(nameRef.current.value)) {
+            setMessValid("Tên sản phẩm để trống!")
+            nameRef.current.focus()
+            return
+        }
+        if (categoryRef.current !== null && !Boolean(categoryRef.current.value)) {
+            setMessValid("Danh mục sản phẩm để trống!")
+            return
+        }
+        if (priceRef.current !== null && !Boolean(priceRef.current.value)) {
+            setMessValid("Không để trống giá sản phẩm!")
+            return
+        }
+        if (shortRef.current !== null && !Boolean(shortRef.current.value)) {
+            setMessValid("Mô tả ngắn đang đang để trống!")
+            shortRef.current.focus()
+            return
+        }
+        if (longRef.current !== null && !Boolean(longRef.current.value)) {
+            setMessValid("Mô tả dài đang đang để trống!")
+            return
+        }
+        // Setup data to send request
+        const request = {
+            _id: id,
+            name: nameRef.current?.value,
+            category: categoryRef.current?.value,
+            price: priceRef.current?.value,
+            short_desc: shortRef.current?.value,
+            long_desc: longRef.current?.value
+        }
+        try {
+            const access_token = sessionStorage.getItem('access_token')
+            const res = await axios.post("http://localhost:5000/admin/api/v1/product", request, {
+                withCredentials: true,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + access_token,
+                }
+            })
+            // console.log("Product updated: ", res.data)
+            // const newProds = products.filter( item => item._id !== id )
+            // newProds.push({
+            //     _id: id,
+            //     name: res.data.name,
+            // })
+            let updatedCategory = categories.filter( item => item._id === res.data.category)
+            
+            for (let i = 0; i < products.length; i++) {
+                if (id === products[i]._id) {
+                    products[i].name = res.data.name
+                    products[i].category = updatedCategory[0].name
+                    products[i].price = res.data.price
+                    break
+                }
+            }
+            setProducts(products)
+            // setSuccess(true)
+            setOpen(false)
+        } catch (error:any) {
+            setMessValid(error.response.data)
+        }
+    }
+
+    const handleCloseForm = (event?: React.SyntheticEvent | Event, reason?: string) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setMessValid('')
+        setSuccess(false)
+    }
+    useEffect(() => {
+        
+        if (id !== null) {
+            ;( async () => {
+                const access_token = sessionStorage.getItem("access_token")
+                const res = await axios.get("http://localhost:5000/admin/api/v1/product?id=" + id, {
+                    withCredentials: true,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + access_token,
+                    }
+                })
+                setData(res.data)
+            })()
+        }
+        
+    }, [])
+    useEffect(() => {
+        if (nameRef.current && longRef.current && shortRef.current && categoryRef.current && priceRef.current) {
+            // console.log("Selected: ", data)
+            nameRef.current.value = data?.name
+            priceRef.current.value = data?.price
+            shortRef.current.value = data?.short_desc
+            longRef.current.value = data?.long_desc
+            categoryRef.current.value = data?.category
+        }
+    })
+    return (
+        <>
+        <Snackbar open={Boolean(messValid)} autoHideDuration={4000} onClose={handleCloseForm}>
+            <Alert onClose={handleCloseForm} severity="error" sx={{ width: '100%' }}>
+                { messValid }
+            </Alert>
+        </Snackbar>
+        <Snackbar open={success} autoHideDuration={2000} onClose={handleCloseForm}>
+            <Alert onClose={handleCloseForm} severity="success" sx={{ width: '100%' }}>
+                Cập nhật thành công sản phẩm
+            </Alert>
+        </Snackbar>
+        {/* Dialog form for update products */}
+        <Dialog
+            open={open}
+            onClose={handleClose}
+            aria-labelledby="alert-dialog-title"
+            aria-describedby="alert-dialog-description"
+            // fullScreen={fullScreen}
+            // sx={{ mt: 2, minWidth: '40vw' }}
+        >
+            <DialogTitle id="alert-dialog-title">
+            {"Cập nhật thông tin sản phẩm"}
+            </DialogTitle>
+            <DialogContent>
+            <DialogContentText id="alert-dialog-description">
+                <div>
+                    <div className="mb-4">
+                        <label htmlFor="product-name">Tên sản phẩm</label><br/>
+                        <input
+                            type="text"
+                            id="product-name"
+                            ref={nameRef}
+                            // name="name"
+                            // value={selected?.name}
+                            className="w-full rounded-lg border-2 border-gray-200 p-2 pe-4 text-sm shadow-sm"
+                            placeholder="Nhập tên sản phẩm"
+                        />
+                    </div>
+                    {/* Choose category and inputs quantity */}
+                    <div className="mb-4 flex flex-row items-center gap-4">
+                        {/* Category */}
+                        <div>
+                            <select name="category" defaultValue={data?.category} className="border-2 text-sm p-1 border-gray-200" ref={categoryRef}>
+                                <option value={''}>
+                                    <>Selected Category</>
+                                </option>
+                                {
+                                categories.map((value:any, index:number) => (
+                                    <option key={index} value={value._id}>{value.name}</option>
+                                ))
+                                }
+                            </select>
+                        </div>
+                        {/* Price */}
+                        <div>
+                            <label htmlFor="">
+                                Price
+                                <input type="number" id="product-price" 
+                                className="border-2 text-sm ml-2 p-1 border-gray-200 [-moz-appearance:_textfield] sm:text-sm [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none" ref={priceRef}/>
+                            </label>
+                        </div>
+                    </div>
+                    {/* Short description for product */}
+                    <div>
+                        <label htmlFor="short-desc">Short description</label><br/>
+                        <textarea ref={shortRef}  id="short-desc" className="w-full rounded-lg border-2 border-gray-200 p-2 pe-4 text-sm shadow-sm" rows={5}></textarea>
+                    </div>
+                    {/* Long description for product */}
+                    <div>
+                        <label htmlFor="long-desc">Long description</label><br/>
+                        <textarea id="long-desc" className="w-full rounded-lg border-2 border-gray-200 p-2 pe-4 text-sm shadow-sm" 
+                            ref={longRef}
+                            onChange={(e) => {
+                            }}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                    e.preventDefault()
+                                    if (longRef.current !== null) {
+                                        longRef.current.value += '\n- '
+                                    }
+                                }
+                            }}
+                        rows={10}></textarea>
+                    </div>
+                </div>
+            </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+            <Button onClick={handleClose}>Hủy</Button>
+            <Button variant="contained" color="primary" onClick={handleUpdated} autoFocus>
+                Cập nhật
+            </Button>
+            </DialogActions>
+        </Dialog>
+        </>
+    );
+};
+
+function ListProduct() {
+    // const theme = useTheme()
+    // const fullScreen = useMediaQuery(theme.breakpoints.down('md'))
+
     const [ selected, setSelected] = useState<any>(null)
+    // const [ prodServer, setProdServer ] = useState<any>(null)
+    const [ products, setProducts ] = useState<any[]>([])
+    const [ categories, setCategories ] = useState<any>([])
     // open/close dialog updated product
     const [ open, setOpen ] = useState(false)
     // open/close dialog confirm delete product
     const [ openConfirm, setOpenConfirm ] = useState(false)
-    const handleClose = () => {
-        setOpen(false);
-    }
+    const [ idSelected, setIdSelected ] = useState('')
+
     const handleCloseConfirm = () => {
         setOpenConfirm(false)
     }
-    useEffect(() => {
-        if (selected !== null) {
-            // Call api get detail product
-            if (nameRef.current && longRef.current && shortRef.current && categoryRef.current) {
-                
-            }
-        }
-    }, [selected])
 
+    // useEffect(() => {
+
+    // }, )
     useEffect(() => {
         // Get Access token from session
         const access_token = Boolean(sessionStorage.getItem('access_token')) ?
@@ -106,7 +270,10 @@ function ListProduct() {
                         withCredentials: true
                     })
                     
-                    console.log(res.data)
+                    // console.log(res.data)
+                    setProducts(res.data)
+                    const result = await axios.get("http://localhost:5000/admin/api/v1/list-category")
+                    setCategories(result.data)
                 } catch (error) {
                     console.log(error)
                     
@@ -116,80 +283,12 @@ function ListProduct() {
     }, [])
     return(
         <>
-        {/* Dialog form for update products */}
-        <Dialog
-            open={open}
-            onClose={handleClose}
-            aria-labelledby="alert-dialog-title"
-            aria-describedby="alert-dialog-description"
-            fullScreen={fullScreen}
-            // sx={{ mt: 2, minWidth: '40vw' }}
-        >
-            <DialogTitle id="alert-dialog-title">
-            {"Use Google's location service?"}
-            </DialogTitle>
-            <DialogContent>
-            <DialogContentText id="alert-dialog-description">
-                <div>
-                    <div className="mb-4">
-                        <label htmlFor="product-name">Tên sản phẩm</label><br/>
-                        <input
-                            type="text"
-                            id="product-name"
-                            ref={nameRef}
-                            className="w-full rounded-lg border-2 border-gray-200 p-2 pe-4 text-sm shadow-sm"
-                            placeholder="Nhập tên sản phẩm"
-                        />
-                    </div>
-                    {/* Choose category and inputs quantity */}
-                    <div className="mb-4 flex flex-row items-center gap-4">
-                        {/* Category */}
-                        <div>
-                            <select name="category" className="border-2 text-sm p-1 border-gray-200" ref={categoryRef}>
-                                <option value={''}>
-                                    <>Selected Category</>
-                                </option>
-                                <option value='12939120'>Iphone</option>
-                                <option value='999923'>Ipad</option>
-                            </select>
-                        </div>
-                    </div>
-                    {/* Short description for product */}
-                    <div>
-                        <label htmlFor="short-desc">Short description</label><br/>
-                        <textarea ref={shortRef} id="short-desc" className="w-full rounded-lg border-2 border-gray-200 p-2 pe-4 text-sm shadow-sm" rows={5}></textarea>
-                    </div>
-                    {/* Long description for product */}
-                    <div>
-                        <label htmlFor="long-desc">Long description</label><br/>
-                        <textarea name="" id="long-desc" className="w-full rounded-lg border-2 border-gray-200 p-2 pe-4 text-sm shadow-sm" 
-                            ref={longRef}
-                            onChange={(e) => {
-
-                            }}
-                            onKeyDown={(e) => {
-                                
-                                if (e.key === "Enter") {
-                                    e.preventDefault()
-                                    if (longRef.current !== null) {
-                                        longRef.current.value += '\n- '
-                                    }
-                                }
-                            }}
-                        rows={10}></textarea>
-                    </div>
-                </div>
-            </DialogContentText>
-            </DialogContent>
-            <DialogActions>
-            <Button onClick={handleClose}>Disagree</Button>
-            <Button onClick={handleClose} autoFocus>
-                Agree
-            </Button>
-            </DialogActions>
-        </Dialog>
+        {
+            (open && idSelected) ? <UpdateForm products={products} setProducts={setProducts} 
+                    id={idSelected} open={open} setOpen={setOpen} categories={categories}/> : null
+        }
         {/* Dialog confirm remove product (ngừng kinh doanh) */}
-            <Dialog
+        <Dialog
             open={openConfirm}
             onClose={handleCloseConfirm}
             aria-labelledby="confirm-dialog-title"
@@ -252,12 +351,12 @@ function ListProduct() {
                         <th className="border-2 border-gray-700">Actions</th>
                     </tr>
                     {
-                        dummy.map((item, key) => {
+                        products.map((item, key) => {
                             const data = Object.values(item)
                             return(
                                 <tr className="even:bg-gray-200" key={key}>
                                     {
-                                        data?.map((value, index) => (
+                                        data?.map((value:any, index) => (
                                             <td key={index} className="text-center  border-collapse border-2 border-gray-700 p-2">
                                                 {(index === 2) ? 
                                                     <img className="w-10 object-contain m-auto" src={value} alt="anh" /> : value
@@ -268,8 +367,8 @@ function ListProduct() {
                                     <td className="text-center border-collapse border-2 border-gray-700 p-2">
                                         <button className="bg-green-400 p-1 text-white mr-2"
                                             onClick={() => {
-                                                console.log("Update id: ", item._id)
                                                 setOpen(true)
+                                                setIdSelected(item._id)
                                             }}
                                         >Update</button>
                                         <button className="bg-red-400 p-1 text-white"
