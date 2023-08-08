@@ -1,8 +1,8 @@
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Snackbar } from "@mui/material";
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
-import { useTheme } from '@mui/material/styles';
 import axios from "axios";
 import { Dispatch, SetStateAction, forwardRef, useEffect, useRef, useState } from "react";
+import { URL } from "../../app/constant";
 
 type Props = {
     id: string,
@@ -68,7 +68,7 @@ export function UpdateForm(props: Props) {
         }
         try {
             const access_token = sessionStorage.getItem('access_token')
-            const res = await axios.post("http://localhost:5000/admin/api/v1/product", request, {
+            const res = await axios.post(URL+"/admin/api/v1/product", request, {
                 withCredentials: true,
                 headers: {
                     'Content-Type': 'application/json',
@@ -111,7 +111,7 @@ export function UpdateForm(props: Props) {
         if (id !== null) {
             ;( async () => {
                 const access_token = sessionStorage.getItem("access_token")
-                const res = await axios.get("http://localhost:5000/admin/api/v1/product?id=" + id, {
+                const res = await axios.get(URL+"/admin/api/v1/product?id=" + id, {
                     withCredentials: true,
                     headers: {
                         'Content-Type': 'application/json',
@@ -261,7 +261,7 @@ function ListProduct() {
         if (access_token) {
             ;(async () => {
                 try {
-                    const res = await axios.get("http://localhost:5000/admin/api/v1/list-product", 
+                    const res = await axios.get(URL+"/admin/api/v1/list-product", 
                     {
                         headers: { 
                             'Authorization': 'Bearer ' + access_token, 
@@ -272,7 +272,7 @@ function ListProduct() {
                     
                     // console.log(res.data)
                     setProducts(res.data)
-                    const result = await axios.get("http://localhost:5000/admin/api/v1/list-category")
+                    const result = await axios.get(URL+"/admin/api/v1/list-category")
                     setCategories(result.data)
                 } catch (error) {
                     console.log(error)

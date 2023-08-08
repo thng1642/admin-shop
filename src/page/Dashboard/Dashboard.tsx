@@ -1,6 +1,7 @@
 import axios from "axios"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { URL } from "../../app/constant"
 
 /**
  * Show main contain for admin
@@ -20,7 +21,7 @@ function Dashboard() {
         }
         ;(async () => {
             try {
-                const overview = await axios.get("http://localhost:5000/admin/api/v1/overview", {
+                const overview = await axios.get(URL+"/admin/api/v1/overview", {
                     withCredentials: true,
                     headers: {
                         'Content-Type': 'application/json',
@@ -31,7 +32,7 @@ function Dashboard() {
                 setCountClient(overview.data.client)
                 setMoney(overview.data.total)
                 setNewOrder(overview.data.newOrder)
-                const res = await axios.get("http://localhost:5000/admin/api/v1/list-order/", {
+                const res = await axios.get(URL+"/admin/api/v1/list-order/", {
                     withCredentials: true,
                     headers: {
                         'Content-Type': 'application/json',

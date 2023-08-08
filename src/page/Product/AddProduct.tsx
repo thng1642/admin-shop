@@ -4,6 +4,7 @@ import { CircularProgress, Snackbar } from "@mui/material";
 import { green } from '@mui/material/colors'
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+// import { URL } from "../../app/constant";
 
 const Alert = forwardRef<HTMLDivElement, AlertProps>(function Alert(
     props,
@@ -102,7 +103,7 @@ function AddProduct() {
         setCreating(true)
         try {
             const access_token = sessionStorage.getItem("access_token")
-            const res = await axios.post("http://localhost:5000/admin/api/v1/add-product",
+            const res = await axios.post("https://server-shop.vercel.app" + "/admin/api/v1/add-product",
                 data,
                 {
                     withCredentials: true,
@@ -127,7 +128,7 @@ function AddProduct() {
             return
         }
         ;(async () => {
-            const res = await axios.get("http://localhost:5000/admin/api/v1/list-category", {
+            const res = await axios.get("https://server-shop.vercel.app" + "/admin/api/v1/list-category", {
                 withCredentials: true,
                 headers: {
                     'Content-Type': 'application/json',

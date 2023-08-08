@@ -2,6 +2,7 @@ import { Alert } from "@mui/material"
 import axios from "axios"
 import { useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { URL } from "../../app/constant"
 
 function LoginForm() {
 
@@ -116,7 +117,7 @@ function LoginForm() {
                                 console.log("Authentication ", body)
                                 ;(async () => {
                                     try {
-                                        const res = await axios.post(`http://localhost:5000/admin/api/v1/login`, body, {
+                                        const res = await axios.post(`${URL}/admin/api/v1/login`, body, {
                                             withCredentials: true,
                                             headers: { 
                                                 "Content-Type" : "application/json"

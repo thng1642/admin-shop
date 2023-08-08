@@ -1,5 +1,6 @@
 import axios from "axios"
 import { Link, useLocation, useNavigate } from "react-router-dom"
+import { URL } from "../../app/constant"
 
 function Sidebar() {
 
@@ -36,7 +37,7 @@ function Sidebar() {
             </div>
             <div onClick={() => {
                 sessionStorage.removeItem("access_token")
-                axios.post('http://localhost:5000/admin/api/v1/logout', null, {
+                axios.post(URL+'/admin/api/v1/logout', null, {
                     withCredentials: true,
                 })
                 nav('/login')
