@@ -14,4 +14,3 @@ purge: ['./src/**/*.html', './src/**/*.tsx', './src/**/*.css'],
   },
   plugins: [],
 }
-
